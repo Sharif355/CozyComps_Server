@@ -29,7 +29,8 @@ async function run() {
         const categoryCollection = client.db('petDB').collection('petCategory');
         const allPetsCollection = client.db('petDB').collection('allPetsCollection');
         const adoptCollection = client.db('petDB').collection('adoptCollection')
-        const userCollection = client.db('petDB').collection('userCollection')
+        const userCollection = client.db('petDB').collection('userCollection');
+        const donationCollection = client.db('petDB').collection('donationCollection')
 
 
         app.get('/categories', async (req, res) => {
@@ -76,6 +77,20 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result)
         })
+
+        app.get('/donations', async (req, res) => {
+            const cursor = donationCollection.find();
+            const result = await cursor.toArray();
+            res.send(result)
+        })
+
+        app.get('/donations/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await donationCollection.findOne(query);
+            res.send(result)
+        })
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
