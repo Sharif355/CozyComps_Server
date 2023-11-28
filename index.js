@@ -9,7 +9,7 @@ app.use(cors());
 
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.sccpwsm.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -27,7 +27,9 @@ async function run() {
         await client.connect();
 
         const categoryCollection = client.db('petDB').collection('petCategory');
-        const allPetsCollection = client.db('petDB').collection('allPetsCollection')
+        const allPetsCollection = client.db('petDB').collection('allPetsCollection');
+        const adoptCollection = client.db('petDB').collection('adoptCollection')
+        const userCollection = client.db('petDB').collection('userCollection')
 
 
         app.get('/categories', async (req, res) => {
@@ -38,6 +40,39 @@ async function run() {
 
         app.get('/allPets', async (req, res) => {
             const cursor = allPetsCollection.find();
+            const result = await cursor.toArray();
+            res.send(result)
+        })
+
+        app.get('/allPets/:id', async (req, res) => {
+            const id = req.params.id
+            const option = { _id: new ObjectId(id) }
+            const result = await allPetsCollection.findOne(option);
+            res.send(result)
+        })
+
+        app.post('/adopts', async (req, res) => {
+            const data = req.body;
+            const result = await adoptCollection.insertOne(data)
+            res.send(result)
+
+        })
+
+        app.get('/adopts', async (req, res) => {
+            const cursor = adoptCollection.find();
+            const result = await cursor.toArray();
+            res.send(result)
+        })
+
+        app.post('/userInfos', async (req, res) => {
+            const { name, email } = req.body;
+            console.log(name, email)
+            const result = await userCollection.insertOne({ name, email, role: 'user' })
+            res.send(result)
+        })
+
+        app.get('/userInfos', async (req, res) => {
+            const cursor = userCollection.find();
             const result = await cursor.toArray();
             res.send(result)
         })
