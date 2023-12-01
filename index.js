@@ -30,7 +30,9 @@ async function run() {
         const allPetsCollection = client.db('petDB').collection('allPetsCollection');
         const adoptCollection = client.db('petDB').collection('adoptCollection')
         const userCollection = client.db('petDB').collection('userCollection');
-        const donationCollection = client.db('petDB').collection('donationCollection')
+        const donationCollection = client.db('petDB').collection('donationCollection');
+        const loggedUserCollection = client.db('petDB').collection('loggedUserCollection')
+
 
 
         app.get('/categories', async (req, res) => {
@@ -66,9 +68,25 @@ async function run() {
         })
 
         app.post('/userInfos', async (req, res) => {
-            const { name, email } = req.body;
-            console.log(name, email)
-            const result = await userCollection.insertOne({ name, email, role: 'user' })
+            const { name, email, photo } = req.body;
+            const query = { email: email }
+            const existingUser = await userCollection.findOne(query);
+            if (existingUser) {
+                return res.send({ message: 'user already exist', insertedId: null })
+            }
+            const result = await userCollection.insertOne({ name, email, photo, role: 'user' })
+            res.send(result)
+        })
+
+        app.patch('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    role: 'admin'
+                }
+            }
+            const result = await userCollection.updateOne(query, updatedDoc)
             res.send(result)
         })
 
@@ -90,6 +108,14 @@ async function run() {
             const result = await donationCollection.findOne(query);
             res.send(result)
         })
+
+        app.post('/users', async (req, res) => {
+            const data = req.body;
+            const result = await loggedUserCollection.insertOne(data);
+            res.send(result)
+        })
+
+
 
 
         // Send a ping to confirm a successful connection
